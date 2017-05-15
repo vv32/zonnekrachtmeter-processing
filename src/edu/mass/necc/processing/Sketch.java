@@ -48,11 +48,5 @@ final public class Sketch extends PApplet {
             ellipse(width*i/arrayOfFloats.length+width/200/2,height-arrayOfFloats[i],width/200,width/200);
         }
     }
-    
-    public void serialEvent(Serial myPort) {
-        data = myPort.readStringUntil('.');
-        data = data.substring(0, data.length()-1);
-        wPotmeter = Float.parseFloat(data);
-        wPotmeter = map(wPotmeter, 0, 4096, 0, height);
-    }
 }
+ 
