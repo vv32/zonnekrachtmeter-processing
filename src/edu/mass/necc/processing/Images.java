@@ -7,7 +7,7 @@ public class Images {
 
     public static PImage LOGO;
     
-    public static void setup(PApplet sketch) {
+    public static void init(PApplet sketch) {
         LOGO = sketch.loadImage("henklogo.png");
     }
 }
