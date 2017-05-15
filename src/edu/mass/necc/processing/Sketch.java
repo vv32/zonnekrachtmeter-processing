@@ -2,7 +2,7 @@ package edu.mass.necc.processing;
 
 import processing.core.PApplet;
 
-final public class Sketch extends PApplet {
+public class Sketch extends PApplet {
 
     @Override
     public void settings() {
@@ -13,6 +13,7 @@ final public class Sketch extends PApplet {
     public void setup() {
         super.surface.setResizable(true);
         super.frame.setTitle("H&K Zonnekrachtmeter");
+        
     }
     
     @Override
