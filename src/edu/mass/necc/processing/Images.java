@@ -1,3 +1,7 @@
+/**
+* @author  Job Feikens
+* @since   2017-05-16
+*/
 package edu.mass.necc.processing;
 
 import processing.core.PApplet;
