@@ -5,19 +5,21 @@
 package edu.mass.necc.processing;
 
 import java.util.stream.IntStream;
-import org.gicentre.utils.stat.BarChart;
 import org.gicentre.utils.stat.XYChart;
 
-public class Graph {
+public class Graph extends Element {
 
-    final private Sketch sketch;
+    final private float[] values;
     
     final private String title;
     
     private XYChart graph;
  
-    public Graph(Sketch sketch, String title) {
-        this.sketch = sketch;
+    private int updateCount = 0;
+    
+    public Graph(Sketch sketch, float[] values, String title) {
+        super(sketch);
+        this.values = values;
         this.title = title;
     }
 
@@ -29,19 +31,22 @@ public class Graph {
         graph.setLineWidth(2);
         graph.showXAxis(true);
         graph.showYAxis(true);
-    }
-    
-    private int x, y, width, height;
-    
-    public void setTransform(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        setValues();
     }
 
-    public void setValues(float[] values) {
-        graph.setData(values, values);
+    public void addValue(float value) {
+        updateCount++;
+        shiftArray();
+        values[0] = value;
+        setValues();
+    }
+    
+    private void shiftArray() {
+        for (int k = values.length - 1; k > 0; k--) 
+            values[k]=values[k-1];
+    }
+    
+    private void setValues() {
         int[] intArray = IntStream.range(0, values.length).toArray();
         float[] floatArray = new float[intArray.length];
         for(int i = 0; i < intArray.length; i++)
@@ -49,8 +54,20 @@ public class Graph {
         graph.setData(floatArray, values);
     }
     
+    public float getAverage() {
+        float total = 0;
+        int skip = 0;
+        for(int i = 0; i < values.length; i++) {
+            total += values[i];
+            if(values[i] < 0.005 && values[i] > -0.005)
+                skip++;
+        }
+        return total / (values.length - skip);
+    }
+    
+    @Override
     public void draw() {
-        if(mouseOnGraph())
+        if(mouseOver())
             sketch.fill(0, 255, 0, 130);
         else
             sketch.fill(0, 255, 0, 80);
@@ -60,7 +77,6 @@ public class Graph {
     public void drawFullscreen() {
         sketch.fill(0, 255, 0, 80);
         draw(20, 20, sketch.width - 40, sketch.height - 40);
-        //graph.draw(20, 20, sketch.width, sketch.height);
     }
     
     private void draw(int x, int y, int width, int height) {
@@ -72,13 +88,13 @@ public class Graph {
         graph.draw(x + 60, y + 50, width - 90, height - 80);
     }
     
-    public boolean mouseOnGraph() {
-        if(sketch.mouseX > x &&
-                sketch.mouseX < x + width &&
-                sketch.mouseY > y &&
-                sketch.mouseY < y + height)
-            return true;
-        else
+    public boolean updateNext() {
+        if(values.length == 24)
             return false;
+        if(updateCount >= values.length) {
+            updateCount = 0;
+            return true;
+        }
+        return false; 
     }
 }
