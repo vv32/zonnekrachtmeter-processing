@@ -135,14 +135,14 @@ final public class Sketch extends PApplet {
             }
     }
     
-    private TimerTask secondTask = new TimerTask() {
+    final private TimerTask secondTask = new TimerTask() {
         @Override
         public void run() {
             secondPassed();
         }
     };  
     
-    Timer timer = new Timer();
+    final private Timer timer = new Timer();
     {
         timer.schedule(secondTask, 1000, 1000);
     }
@@ -152,15 +152,12 @@ final public class Sketch extends PApplet {
         String input = trim(serial.readString());
         try {
             if(input == null)
-                throw new NullPointerException();
+                return;
             connected();
             parseString(input);
-        } catch(NullPointerException e) {
-            disconnected();
         } catch(NumberFormatException e) {
             return;
         }
-        serial.clear();
     }
 
     private int dctime;
