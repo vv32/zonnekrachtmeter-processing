@@ -1,12 +1,16 @@
 /**
 * @author  Job Feikens 360368
 * @since   2017-05-16
+*           Project Zonnekrachtmeter
 *           Hanzehogeschool Groningen
 */
 package edu.mass.necc.processing;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import processing.core.PApplet;
@@ -15,19 +19,21 @@ import processing.serial.Serial;
 
 final public class Sketch extends PApplet {
 
+    final private long startTime = System.currentTimeMillis();
+    
     final private Graph graph_temp_min, graph_temp_hour, graph_temp_day,
                         graph_anemo_min, graph_anemo_hour, graph_anemo_day,
                         graph_solar_min, graph_solar_hour, graph_solar_day;
     {
-        graph_temp_min = new Graph(this, new float[60], "Past minute");
-        graph_temp_hour = new Graph(this, new float[60], "Past hour");
-        graph_temp_day = new Graph(this, new float[24], "Past day");
-        graph_anemo_min = new Graph(this, new float[60], "Past minute");
-        graph_anemo_hour = new Graph(this, new float[60], "Past hour");
-        graph_anemo_day = new Graph(this, new float[24], "Past day");
-        graph_solar_min = new Graph(this, new float[60], "Past minute");
-        graph_solar_hour = new Graph(this, new float[60], "Past hour");
-        graph_solar_day = new Graph(this, new float[24], "Past day");
+        graph_temp_min = new Graph(this, new float[60], "Temperatuur (minuut)");
+        graph_temp_hour = new Graph(this, new float[60], "Temperatuur (uur)");
+        graph_temp_day = new Graph(this, new float[24], "Temperatuur (dag)");
+        graph_anemo_min = new Graph(this, new float[60], "Windsnelheid (minuut)");
+        graph_anemo_hour = new Graph(this, new float[60], "Windsnelheid (uur)");
+        graph_anemo_day = new Graph(this, new float[24], "Windsnelheid (dag)");
+        graph_solar_min = new Graph(this, new float[60], "Irradiantie (minuut)");
+        graph_solar_hour = new Graph(this, new float[60], "Irradiantie (uur)");
+        graph_solar_day = new Graph(this, new float[24], "Irradiantie (dag)");
     }
     
     final private List<Graph> tempGraphs = new ArrayList(){{
@@ -58,21 +64,21 @@ final public class Sketch extends PApplet {
     
     private Graph selectedGraph = null;
 
-    private Button tempButton = new Button(this, new ButtonAction() {
+    private Button tempButton = new Button(this, "Temperatuur", new ButtonAction() {
         @Override
         public void clicked() {
             activeGraphs = tempGraphs;
         }
     });
 
-    private Button anemoButton = new Button(this, new ButtonAction() {
+    private Button anemoButton = new Button(this, "Windsnelheid", new ButtonAction() {
         @Override
         public void clicked() {
             activeGraphs = anemoGraphs;
         }
     });
     
-    private Button solarButton = new Button(this, new ButtonAction() {
+    private Button solarButton = new Button(this, "Irradiantie", new ButtonAction() {
         @Override
         public void clicked() {
             activeGraphs = solarGraphs;
@@ -102,7 +108,7 @@ final public class Sketch extends PApplet {
         for(Graph graph : allGraphs)
             graph.setup(this);
         Images.init(this);
-        
+        super.strokeWeight(0);
     }
 
     private void update() {
@@ -115,7 +121,7 @@ final public class Sketch extends PApplet {
         activeGraphs.get(1).setTransform(20, height / 2 + 20, width / 2 - 40, height / 2 - 40);
         activeGraphs.get(2).setTransform(width / 2 + 20, height / 2 + 20, width / 2 - 40, height / 2 - 40);
 
-        tempButton.setTransform(20,                          height / 2 - 60, (int) (width * 1/6f) - 20, 40);
+        tempButton.setTransform(20, height / 2 - 60, (int) (width * 1/6f) - 20, 40);
         anemoButton.setTransform((int) (width * 1/6f) + 10, height / 2 - 60, (int) (width * 1/6f) - 20, 40);
         solarButton.setTransform((int) (width * 1/3f) + 0, height / 2 - 60, (int) (width * 1/6f) - 20, 40);
         
@@ -123,8 +129,10 @@ final public class Sketch extends PApplet {
             return;
 
         for(Graph graph : activeGraphs)
-            if(graph.isClicked())
-                selectedGraph = graph; 
+            if(graph.isClicked()) {
+                graph.isFullscreen = true;
+                selectedGraph = graph;
+            }
     }
     
     final private Timer timer = new Timer();
@@ -144,6 +152,7 @@ final public class Sketch extends PApplet {
                 } catch(NumberFormatException e) {
                     return;
                 }
+                serial.clear();
             }
         }, 1000, 1000);
     }
@@ -169,7 +178,6 @@ final public class Sketch extends PApplet {
     }
     
     private void parseString(String input) throws NumberFormatException {
-        System.out.println(input);
         String[] values = input.split(",");
         if(values.length < 3)
             return;
@@ -179,7 +187,6 @@ final public class Sketch extends PApplet {
     }
     
     private void addValueToGraph(Graph graph, float value) {
-        System.out.println(graph);
         graph.addValue(value);
         if(graph.updateNext())
             addValueToGraph(allGraphs.get(allGraphs.indexOf(graph) + 1), graph.getAverage());
@@ -190,7 +197,10 @@ final public class Sketch extends PApplet {
     @Override
     public void keyPressed() {
         if(key == ESC) {
-            selectedGraph = null;
+            if(selectedGraph != null) {
+                selectedGraph.isFullscreen = false;
+                selectedGraph = null;
+            }
             key = 0;
         }
     }
@@ -198,7 +208,7 @@ final public class Sketch extends PApplet {
     @Override
     public void draw() {
         update();
-        super.background(200);
+        super.background(192,197,206);
         drawLogo(Images.LOGO);      
         if(connected) {
             drawConnected();
@@ -206,17 +216,18 @@ final public class Sketch extends PApplet {
             drawDisconnected();
         }
         update();
-
     }
  
     private void drawDisconnected() {
-        this.text("DISCONNECTED", 10, 30);
+        this.noTint();
+        this.image(Images.CONNECTIONLOST, 0, 0);
     }
     
     private void drawConnected() {
         if(selectedGraph == null) {
             drawGraphs();
             drawButtons();
+            drawInfo();
             drawCurrentValues();
         } else {
             drawGraph(selectedGraph);
@@ -242,6 +253,22 @@ final public class Sketch extends PApplet {
     private void drawButtons() {
         for(Button button : buttons)
             button.draw();
+    }
+    
+    final private TimeZone tz = TimeZone.getTimeZone("UTC");
+    final private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+    {
+        df.setTimeZone(tz);
+    }
+    
+    private void drawInfo() {
+        super.fill(0, 0, 0);
+        super.textSize(20);
+        super.text(df.format(new Date(System.currentTimeMillis() - startTime)), 20, 60);
+        super.text("Verbonden met: " + serial.port.getPortName(), 20, 84);
+        super.text("Temperatuur: " + graph_temp_min.getLatestValue() + "°C", 20, 132);
+        super.text("Windsnelheid: " + graph_anemo_min.getLatestValue() + "m/s", 20, 156);
+        super.text("Irradiantie: " + graph_solar_min.getLatestValue() + "W/m²", 20, 180);
     }
     
     private void drawCurrentValues() {

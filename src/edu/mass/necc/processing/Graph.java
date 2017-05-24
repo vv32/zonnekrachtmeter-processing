@@ -1,6 +1,8 @@
 /**
-* @author  Job Feikens
+* @author  Job Feikens 360368
 * @since   2017-05-16
+*           Project Zonnekrachtmeter
+*           Hanzehogeschool Groningen
 */
 package edu.mass.necc.processing;
 
@@ -17,6 +19,8 @@ public class Graph extends Element {
  
     private int updateCount = 0;
     
+    public boolean isFullscreen;
+    
     public Graph(Sketch sketch, float[] values, String title) {
         super(sketch);
         this.values = values;
@@ -26,8 +30,9 @@ public class Graph extends Element {
     public void setup(Sketch sketch) {
         graph = new XYChart(sketch);
         graph.setMinY(0);
-
-        graph.setPointSize(1);
+        graph.setMaxX(values.length);
+        
+        graph.setPointSize(0);
         graph.setLineWidth(2);
         graph.showXAxis(true);
         graph.showYAxis(true);
@@ -62,15 +67,14 @@ public class Graph extends Element {
             if(values[i] < 0.005 && values[i] > -0.005)
                 skip++;
         }
+        if(skip == values.length)
+            return 0;
         return total / (values.length - skip);
     }
     
     @Override
     public void draw() {
-        if(mouseOver())
-            sketch.fill(0, 255, 0, 130);
-        else
-            sketch.fill(0, 255, 0, 80);
+        
         draw(x, y, width, height);
     }
     
@@ -80,9 +84,15 @@ public class Graph extends Element {
     }
     
     private void draw(int x, int y, int width, int height) {
-        sketch.rect(x, y, width, height);
+        sketch.fill(100, 100, 100);
+        sketch.rect(x + 4, y + 4, width, height, 3);
+        if(mouseOver())
+            sketch.fill(235, 235, 235, 255);
+        else
+            sketch.fill(245, 245, 245, 255);
+        sketch.rect(x, y, width, height, 3);
         sketch.fill(0, 0, 0);
-        sketch.textSize(32);
+        sketch.textSize(20);
         sketch.text(title + ":", x + 10, y + 34);
         sketch.fill(0, 0, 0);
         graph.draw(x + 60, y + 50, width - 90, height - 80);
@@ -96,5 +106,16 @@ public class Graph extends Element {
             return true;
         }
         return false; 
+    }
+
+    @Override
+    protected boolean mouseOver() {
+        if(isFullscreen)
+            return false;
+        return super.mouseOver();
+    }
+    
+    public float getLatestValue() {
+        return values[0];
     }
 }

@@ -1,3 +1,9 @@
+/**
+* @author  Job Feikens 360368
+* @since   2017-05-16
+*           Project Zonnekrachtmeter
+*           Hanzehogeschool Groningen
+*/
 package edu.mass.necc.processing;
 
 public abstract class Element {
@@ -19,7 +25,7 @@ public abstract class Element {
     
     public abstract void draw();
     
-    final protected boolean mouseOver() {
+    protected boolean mouseOver() {
         return sketch.mouseX > x &&
                sketch.mouseX < x + width &&
                sketch.mouseY > y &&
