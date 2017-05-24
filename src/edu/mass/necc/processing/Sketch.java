@@ -14,6 +14,7 @@ import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import processing.core.PApplet;
+import static processing.core.PApplet.trim;
 import processing.core.PImage;
 import processing.serial.Serial;
 
@@ -138,26 +139,24 @@ final public class Sketch extends PApplet {
     final private TimerTask secondTask = new TimerTask() {
         @Override
         public void run() {
-            secondPassed();
+            serial.write('a');
+            String input = trim(serial.readString());
+            try {
+                if(input == null) {
+                    disconnected();
+                } else {
+                    connected();
+                    parseString(input);
+                }
+            } catch(NumberFormatException e) {
+                return;
+            }
         }
     };  
     
     final private Timer timer = new Timer();
     {
         timer.schedule(secondTask, 1000, 1000);
-    }
-    
-    private void secondPassed() {
-        serial.write('a');
-        String input = trim(serial.readString());
-        try {
-            if(input == null)
-                return;
-            connected();
-            parseString(input);
-        } catch(NumberFormatException e) {
-            return;
-        }
     }
 
     private int dctime;
