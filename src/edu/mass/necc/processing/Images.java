@@ -13,9 +13,11 @@ public class Images {
 
     public static PImage LOGO;
     public static PImage CONNECTIONLOST;
+    public static PImage INDENT;
     
     public static void init(Sketch sketch) {
         LOGO = sketch.loadImage("henklogo.png");
         CONNECTIONLOST = sketch.loadImage("connectionlost.png");
+        INDENT = sketch.loadImage("indent.png");
     }
 }

@@ -25,14 +25,10 @@ public abstract class Element {
     
     public abstract void draw();
     
-    protected boolean mouseOver() {
+    public boolean mouseOver() {
         return sketch.mouseX > x &&
                sketch.mouseX < x + width &&
                sketch.mouseY > y &&
                sketch.mouseY < y + height;
-    }
-    
-    final public boolean isClicked() {
-        return mouseOver() && sketch.mousePressed;
     }
 }

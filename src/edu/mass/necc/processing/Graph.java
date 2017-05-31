@@ -25,6 +25,7 @@ public class Graph extends Element {
         super(sketch);
         this.values = values;
         this.title = title;
+        this.label = new Label(sketch);
     }
 
     public void setup(Sketch sketch) {
@@ -32,10 +33,11 @@ public class Graph extends Element {
         graph.setMinY(0);
         graph.setMaxX(values.length);
         
-        graph.setPointSize(0);
+        graph.setPointSize(4);
         graph.setLineWidth(2);
         graph.showXAxis(true);
         graph.showYAxis(true);
+
         setValues();
     }
 
@@ -71,16 +73,44 @@ public class Graph extends Element {
             return 0;
         return total / (values.length - skip);
     }
-    
+
     @Override
     public void draw() {
         
         draw(x, y, width, height);
     }
     
+    private boolean mouseOnGraph() {
+        return 
+                sketch.mouseX > 100 &&
+                sketch.mouseX < sketch.width - 100 &&
+                sketch.mouseY > 70 &&
+                sketch.mouseY < sketch.height - 70;
+    }
+    
     public void drawFullscreen() {
         sketch.fill(0, 255, 0, 80);
         draw(20, 20, sketch.width - 40, sketch.height - 40);
+        if(mouseOnGraph())
+            drawLabel();
+    }
+    
+    final private Label label;
+    
+    private void drawLabel() {
+        int absMouseX = sketch.mouseX - 100;
+        int graphWidth = sketch.width - 200;
+        float factor = absMouseX / (float) graphWidth;
+        int pos = (int) (factor * values.length);
+        
+        int graphHeight = sketch.height - 140;
+        float y = sketch.height - (values[pos] / graph.getMaxY() * graphHeight) - 70;
+        
+        float x = pos / graph.getMaxX() * graphWidth;
+        
+        label.setTransform((int) x, (int) y, 0, 0);
+        label.setText(Float.toString(values[pos]));
+        label.draw();
     }
     
     private void draw(int x, int y, int width, int height) {
@@ -109,7 +139,7 @@ public class Graph extends Element {
     }
 
     @Override
-    protected boolean mouseOver() {
+    public boolean mouseOver() {
         if(isFullscreen)
             return false;
         return super.mouseOver();

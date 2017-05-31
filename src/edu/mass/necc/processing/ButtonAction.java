@@ -8,5 +8,5 @@ package edu.mass.necc.processing;
 
 public abstract class ButtonAction {
     
-    public abstract void clicked();
+    public abstract void clicked(Button button);
 }
